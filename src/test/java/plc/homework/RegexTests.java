@@ -160,6 +160,62 @@ public class RegexTests {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource
+    public void testStringAltRegex(String test, String input, boolean success) {
+        test(input, Regex.STRINGALT, success);
+    }
+
+    public static Stream<Arguments> testStringAltRegex() {
+        return Stream.of(
+                Arguments.of("Empty", "\"\"", true),
+                Arguments.of("Hello World", "\"Hello, World!\"", true),
+                Arguments.of("Escape", "\"1\\t2\"", true),
+                Arguments.of("Special Chars", "\"$+=- *%\"", true),
+                Arguments.of("Inner Quotes", "\"He exclaimed, 'Wow!'\"", true),
+                Arguments.of("Lots of spaces", "\"0                 0\"", true),
+                Arguments.of("Algebra", "\"7j + 5 - 9 = 0\"", true),
+                Arguments.of("Unterminated", "\"unterminated", false),
+                Arguments.of("Invalid Escape", "\"invalid\\escape\"", false),
+                Arguments.of("No quotes", "Am I a literal string?", false),
+                Arguments.of("Wrong amount of escape sequences", "\"\\\\\\\\\\\"", false),
+                Arguments.of("Two separate strings", "\"Me\" \"You\"", false),
+                Arguments.of("Only numbers", "123", false),
+                Arguments.of("Single quotes", "'This ain't a string literal'", false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testOperatorRegex(String test, String input, boolean success) {
+        test(input, Regex.OPERATOR, success);
+    }
+
+    public static Stream<Arguments> testOperatorRegex() {
+        return Stream.of(
+                Arguments.of("correct", "<=", true),
+                Arguments.of("correct", "==", true),
+                Arguments.of("incorrect", "<-",false),
+                Arguments.of("incorrect", "<-",false),
+                Arguments.of("incorrect", "<\n",false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testCharRegex(String test, String input, boolean success) {
+        test(input, Regex.CHARACTER, success);
+    }
+
+    public static Stream<Arguments> testCharRegex() {
+        return Stream.of(
+                Arguments.of("single", "'c'", true),
+                //Arguments.of("single", "'\n'", true),
+                Arguments.of("single", "'cc'", false),
+
+                Arguments.of("Not a char", "c", false)
+        );
+    }
     /**
      * Asserts that the input matches the given pattern. This method doesn't do
      * much now, but you will see this concept in future assignments.

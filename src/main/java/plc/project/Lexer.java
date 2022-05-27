@@ -2,7 +2,7 @@ package plc.project;
 
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.regex.Pattern;
 /**
  * The lexer works through three main functions:
  *
@@ -21,6 +21,14 @@ public final class Lexer {
 
     private final CharStream chars;
 
+    public static final Pattern
+            IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_-]*"),
+            INTEGER = Pattern.compile("[+-]?[0-9]*"),
+            DECIMAL = Pattern.compile("[+-]?[0-9]+(.[0-9]+)?"),
+            CHARACTER = Pattern.compile("'([^'\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))'"),
+            STRING = Pattern.compile("\\\"([^\\\"\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))*\\\""),
+            OPERATOR = Pattern.compile("[<>!=]=?");
+
     public Lexer(String input) {
         chars = new CharStream(input);
     }
@@ -32,7 +40,7 @@ public final class Lexer {
     public List<Token> lex() {
         List<Token> lexResult = new ArrayList<Token>();
         for(int i = 0 ; i < chars.length ; i++){
-
+            // yeah i know
         }
 
         //throw new UnsupportedOperationException(); //TODO
