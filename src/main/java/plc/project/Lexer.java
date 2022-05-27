@@ -32,16 +32,32 @@ public final class Lexer {
     public Lexer(String input) {
         chars = new CharStream(input);
     }
-
+    public List<Token> tokens = new ArrayList<Token>();
+    public void addToken(Token token){
+        tokens.add((token));
+    }
     /**
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
     public List<Token> lex() {
-        List<Token> lexResult = new ArrayList<Token>();
+        List<Token> lexResult = new ArrayList<>();
         for(int i = 0 ; i < chars.length ; i++){
-            // yeah i know
+
+//            switch (i) {
+//                case '<': lexOperator();break;
+//                case '>': lexOperator();break;
+//                case '!': lexOperator();break;
+//                case '=': lexOperator();break;
+//                case '?': lexOperator();break;
+//                case '|': lexOperator();break;
+//                case '<': lexOperator();break;
+//                case '<': lexOperator();break;
+//                case '<': lexOperator();break;
+//                case '<': lexOperator();break;
+//            }
         }
+
 
         //throw new UnsupportedOperationException(); //TODO
 
@@ -81,6 +97,8 @@ public final class Lexer {
     }
 
     public Token lexOperator() {
+        //case '!':
+
         throw new UnsupportedOperationException(); //TODO
     }
 
