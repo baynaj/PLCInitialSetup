@@ -21,47 +21,35 @@ public final class Lexer {
 
     private final CharStream chars;
 
-    public static final Pattern
-            IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_-]*"),
-            INTEGER = Pattern.compile("[+-]?[0-9]*"),
-            DECIMAL = Pattern.compile("[+-]?[0-9]+(.[0-9]+)?"),
-            CHARACTER = Pattern.compile("'([^'\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))'"),
-            STRING = Pattern.compile("\\\"([^\\\"\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))*\\\""),
-            OPERATOR = Pattern.compile("[<>!=]=?");
+//    public static final Pattern
+//            IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_-]*"),
+//            INTEGER = Pattern.compile("[+-]?[0-9]*"),
+//            DECIMAL = Pattern.compile("[+-]?[0-9]+(.[0-9]+)?"),
+//            CHARACTER = Pattern.compile("'([^'\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))'"),
+//            STRING = Pattern.compile("\\\"([^\\\"\\n\\r\\\\]|(\\\\[bnrt'\\\"\\\\]))*\\\""),
+//            OPERATOR = Pattern.compile("[<>!=]=?");
 
     public Lexer(String input) {
         chars = new CharStream(input);
-    }
-    public List<Token> tokens = new ArrayList<Token>();
-    public void addToken(Token token){
-        tokens.add((token));
     }
     /**
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
     public List<Token> lex() {
+        String whitespace = "[ \b\n\r\t]";
         List<Token> lexResult = new ArrayList<>();
         for(int i = 0 ; i < chars.length ; i++){
-
-//            switch (i) {
-//                case '<': lexOperator();break;
-//                case '>': lexOperator();break;
-//                case '!': lexOperator();break;
-//                case '=': lexOperator();break;
-//                case '?': lexOperator();break;
-//                case '|': lexOperator();break;
-//                case '<': lexOperator();break;
-//                case '<': lexOperator();break;
-//                case '<': lexOperator();break;
-//                case '<': lexOperator();break;
-//            }
+            // checking if char is not whitespace, if it is not, then fetch token
+            if (!peek(whitespace)) {
+                lexResult.add(lexToken());
+            }
+            else {
+                chars.skip();
+            }
         }
-
-
-        //throw new UnsupportedOperationException(); //TODO
-
         return lexResult;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -73,7 +61,28 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-        throw new UnsupportedOperationException(); //TODO
+        // top-down flow
+        // starting with identifier
+        if (peek("[A-Za-z_]")) {
+            return lexIdentifier();
+        }
+        // move to number
+        else if (peek("[\\+-]?", "//d") || peek("//d")) {
+            return lexNumber();
+        }
+        // move to character
+        else if (peek("'")) {
+            return lexCharacter();
+        }
+        // move to string
+        else if (peek("\"")) {
+            return lexString();
+        }
+        // default check for operator
+        else {
+            return lexOperator();
+        }
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     public Token lexIdentifier() {
