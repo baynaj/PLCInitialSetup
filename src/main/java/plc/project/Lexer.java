@@ -39,13 +39,23 @@ public final class Lexer {
     public List<Token> lex() {
         String whitespace = "[ \b\n\r\t]";
         List<Token> lexResult = new ArrayList<>();
-        for(int i = 0 ; i < chars.length ; i++){
-            // checking if char is not whitespace, if it is not, then fetch token
-            if (!peek(whitespace)) {
-                lexResult.add(lexToken());
+
+        // doesnt play nice with the index already used
+//        for(int i = 0 ; i < chars.length ; i++){
+//            // checking if char is not whitespace, if it is not, then fetch token
+//            if (peek(".")) {
+//                i++;
+//                chars.advance();
+//                chars.skip();
+        while (peek("."))
+        {
+            if (peek(whitespace))  //skip over whitespaces and continue
+            {
+                chars.advance();
+                chars.skip();
             }
             else {
-                chars.skip();
+                lexResult.add(lexToken());
             }
         }
         return lexResult;
@@ -67,7 +77,7 @@ public final class Lexer {
             return lexIdentifier();
         }
         // move to number
-        else if (peek("[\\+-]?", "//d") || peek("//d")) {
+        else if (peek("[+\\-]", "\\d") || peek("\\d")) {
             return lexNumber();
         }
         // move to character
@@ -75,7 +85,7 @@ public final class Lexer {
             return lexCharacter();
         }
         // move to string
-        else if (peek("\"")) {
+        else if (peek("\\\"")) {
             return lexString();
         }
         // default check for operator
@@ -86,29 +96,110 @@ public final class Lexer {
     }
 
     public Token lexIdentifier() {
-        throw new UnsupportedOperationException(); //TODO
+        // since it passed the initial lexToken check, we can just check for everything stuff
+        while(peek("[\\w\\-]"))
+        {
+            match("[\\w\\-]");
+        }
+        return chars.emit(Token.Type.IDENTIFIER);
     }
 
     public Token lexNumber() {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+
+        //peek and match pair is redundant but easier to read.
+        if(peek("[+\\-]"))
+        {
+            match("[+\\-]");
+        }
+
+        while(peek("\\d"))
+        {
+            match("\\d");
+        }
+        // if we find a decimal that has a digit after it,
+        // we need to take the dot and all following digits
+        if(peek("[.]", "\\d"))
+        {
+            match("[.]");
+            while(peek("\\d")) // get all digits after the dot till a whitespace
+            {
+                match("\\d");
+            }
+            // since we found a '.' we can just return this as a decimal
+            return chars.emit(Token.Type.DECIMAL);
+        }
+        // since no '.' was found, return only an integer
+        return chars.emit(Token.Type.INTEGER);
     }
 
     public Token lexCharacter() {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        //if (peek("'"))
+        //{
+        match("'");
+        //}
+
+        if(peek("\\\\")){ // dont take backslashes
+            lexEscape();
+        }
+        else if(peek("[^'\\n\\r\\\\]")) //find and grab anything that isnt an illegal escape char
+        {
+            match("[^'\\n\\r\\\\]");
+        }
+        else
+        {
+            throw new ParseException("Character is not allowed at this index", chars.index);
+        }
+
+        if(match("'")) // make sure we finish closing the single quotes
+        {
+            return chars.emit(Token.Type.CHARACTER);
+        }
+        throw new ParseException("Character single quote not closed", chars.index);
     }
 
     public Token lexString() {
-        throw new UnsupportedOperationException(); //TODO
+        match("\\\"");
+        while (peek("[^\"\\n\\r]"))
+        {
+            if (peek("\\\\"))
+            {
+                // if an escape is found, perform that operation
+                lexEscape();
+            }
+            else
+            {
+                //take in everything thats is inbetween quotes otherwise
+                match(".");
+            }
+        }
+        //check for an endquote. If its not there, throw an exception, else take it
+        if (!match("\\\""))
+        {
+            match("."); // take whatever is there so we spit out the correct index on error
+            throw new ParseException("String not terminated. Endquote expected", chars.index);
+        }
+
+        return chars.emit(Token.Type.STRING);
     }
 
     public void lexEscape() {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        if(!match("\\\\", "[bnrt\'\"\\\\]"))
+        {
+            match(".","."); //move the cursor forward 2 index to support exception
+            throw new ParseException("Unsupported Escape", chars.index);
+        }
     }
 
     public Token lexOperator() {
-        //case '!':
-
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        if(!match("[<>!=]", "="))
+        {
+            match("."); // if it made it past all lexFunctions then take <any other character>
+        }
+        return chars.emit(Token.Type.OPERATOR);
     }
 
     /**
